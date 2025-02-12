@@ -1,0 +1,11 @@
+.DS_Store
+rsa_key.p8
+rsa_key.pub
+.env
+__pycache__
+slackittome/
+slackittome/bin/*
+slackittome/lib/*
+slackittome/include/*
+slackittome/share/*
+default.sqlite
