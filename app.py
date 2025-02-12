@@ -16,24 +16,22 @@ import cortex_chat
 matplotlib.use('Agg')
 load_dotenv()
 
-MODEL = os.getenv("MODEL")
-DATABASE = os.getenv("DEMO_DATABASE")
-SCHEMA = os.getenv("DEMO_SCHEMA")
-WAREHOUSE = os.getenv("WAREHOUSE")
-PASSWORD = os.getenv("DEMO_USER_PASSWORD")
-ROLE = os.getenv("DEMO_USER_ROLE")
-STAGE = os.getenv("SEMANTIC_MODEL_STAGE")
-FILE = os.getenv("SEMANTIC_MODEL_FILE")
-SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
-SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-VEHICLES_INFO_SEARCH_SERVICE = os.getenv("VEHICLES_INFO_SEARCH_SERVICE")
+ACCOUNT = os.getenv("ACCOUNT")
+HOST = os.getenv("HOST")
 USER = os.getenv("DEMO_USER")
 JWT_USER = os.getenv("JWT_USER")
-ACCOUNT = os.getenv("ACCOUNT")
+DATABASE = os.getenv("DEMO_DATABASE")
+SCHEMA = os.getenv("DEMO_SCHEMA")
+PASSWORD = os.getenv("DEMO_USER_PASSWORD")
+ROLE = os.getenv("DEMO_USER_ROLE")
+WAREHOUSE = os.getenv("WAREHOUSE")
+SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 AGENT_ENDPOINT = os.getenv("AGENT_ENDPOINT")
 SEMANTIC_MODEL = os.getenv("SEMANTIC_MODEL")
+SEARCH_SERVICE = os.getenv("SEARCH_SERVICE")
 RSA_PRIVATE_KEY_PATH = os.getenv("RSA_PRIVATE_KEY_PATH")
-HOST = os.getenv("HOST")
+MODEL = os.getenv("MODEL")
 
 # Initializes app
 app = App(token=SLACK_BOT_TOKEN)
@@ -93,13 +91,6 @@ def handle_message_events(ack, body, say):
             },
         ]
     )
-    process_prompt(prompt,say)
-
-@app.command("/askcortex")
-def ask_cortex(ack, body, say):
-    ack()
-    prompt = body['text']
-    say_question(say,prompt)
     process_prompt(prompt,say)
 
 def process_prompt(prompt,say):
@@ -229,7 +220,7 @@ def init():
 
     cortex_app = cortex_chat.CortexChat(
         AGENT_ENDPOINT, 
-        VEHICLES_INFO_SEARCH_SERVICE,
+        SEARCH_SERVICE,
         SEMANTIC_MODEL,
         MODEL, 
         generate_jwt.JWTGenerator(ACCOUNT,JWT_USER,RSA_PRIVATE_KEY_PATH).get_token())

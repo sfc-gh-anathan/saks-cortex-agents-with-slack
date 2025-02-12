@@ -1,52 +1,23 @@
 import requests
 import json
-import time
 
-DEBUG = True
+DEBUG = False
 
 class CortexChat:
     def __init__(self, 
             agent_url: str, 
-            vehicles_info_search_service: str, 
+            search_service: str, 
             semantic_model: str,
             model: str, 
             jwt: str
         ):
         self.agent_url = agent_url
         self.model = model
-        self.vehicles_info_search_service = vehicles_info_search_service
+        self.search_service = search_service
         self.semantic_model = semantic_model
         self.jwt = jwt
 
-    def execute_sql(self, sql: str) -> str:    
-        sql_url = self.sql_statement_url
-        headers = {
-            "X-Snowflake-Authorization-Token-Type": "KEYPAIR_JWT",
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": f"Bearer {self.jwt}"  
-        }
-        
-        data = {
-            "statement": sql,
-            "timeout": 60  # timeout in seconds
-        }
-        response = requests.post(sql_url, headers=headers, json=data)
-        response.raise_for_status()
-        response_data = response.json()
-
-        query_id = response_data.get('statementHandle')
-
-        if DEBUG:
-            print(f"execute_sql response: {response_data}")
-            print(f"query_id: {query_id}")
-
-        if not query_id:
-            raise ValueError("No query ID found in response")
-            
-        return query_id
-
-    def retrieve_response(self, query: str) -> dict[str, any]:
+    def retrieve_response(self, query: str, limit=1) -> dict[str, any]:
         url = self.agent_url
         headers = {
             'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT',
@@ -83,8 +54,8 @@ class CortexChat:
             ],
             "tool_resources": {
                 "vehicles_info_search": {
-                    "name": self.vehicles_info_search_service,
-                    "max_results": 1,
+                    "name": self.search_service,
+                    "max_results": limit,
                     "title_column": "title",
                     "id_column": "relative_path",
                 },
