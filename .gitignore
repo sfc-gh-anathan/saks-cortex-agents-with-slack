@@ -3,9 +3,9 @@ rsa_key.p8
 rsa_key.pub
 .env
 __pycache__
-slackittome/
-slackittome/bin/*
-slackittome/lib/*
-slackittome/include/*
-slackittome/share/*
+.venv/
+venv/bin/*
+venv/lib/*
+venv/include/*
+venv/share/*
 default.sqlite

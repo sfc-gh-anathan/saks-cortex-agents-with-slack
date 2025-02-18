@@ -19,7 +19,6 @@ load_dotenv()
 ACCOUNT = os.getenv("ACCOUNT")
 HOST = os.getenv("HOST")
 USER = os.getenv("DEMO_USER")
-JWT_USER = os.getenv("JWT_USER")
 DATABASE = os.getenv("DEMO_DATABASE")
 SCHEMA = os.getenv("DEMO_SCHEMA")
 PASSWORD = os.getenv("DEMO_USER_PASSWORD")
@@ -223,7 +222,7 @@ def init():
         SEARCH_SERVICE,
         SEMANTIC_MODEL,
         MODEL, 
-        generate_jwt.JWTGenerator(ACCOUNT,JWT_USER,RSA_PRIVATE_KEY_PATH).get_token())
+        generate_jwt.JWTGenerator(ACCOUNT,USER,RSA_PRIVATE_KEY_PATH).get_token())
 
     print(">>>>>>>>>> Init complete")
     return conn,jwt,cortex_app
