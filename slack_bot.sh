@@ -1,4 +1,4 @@
 #!/bin/sh
 
-source slackittome/bin/activate
+source .venv/bin/activate
 python app.py
