@@ -17,7 +17,7 @@ class CortexChat:
         self.semantic_model = semantic_model
         self.jwt = jwt
 
-    def retrieve_response(self, query: str, limit=1) -> dict[str, any]:
+    def _retrieve_response(self, query: str, limit=1) -> dict[str, any]:
         url = self.agent_url
         headers = {
             'X-Snowflake-Authorization-Token-Type': 'KEYPAIR_JWT',
@@ -68,12 +68,12 @@ class CortexChat:
         if DEBUG:
             print(response.text)
         if response.status_code == 200:
-            return self.parse_response(response)
+            return self._parse_response(response)
         else:
             print(f"Error: Received status code {response.status_code}")
-            return {"text":response.text}
+            return {"text": response.text}
 
-    def parse_delta_content(self,content: list) -> dict[str, any]:
+    def _parse_delta_content(self,content: list) -> dict[str, any]:
         """Parse different types of content from the delta."""
         result = {
             'text': '',
@@ -92,11 +92,10 @@ class CortexChat:
         
         return result
 
-    def process_sse_line(self,line: str) -> dict[str, any]:
+    def _process_sse_line(self,line: str) -> dict[str, any]:
         """Process a single SSE line and return parsed content."""
         if not line.startswith('data: '):
             return {}
-        
         try:
             json_str = line[6:].strip()  # Remove 'data: ' prefix
             if json_str == '[DONE]':
@@ -108,13 +107,13 @@ class CortexChat:
                 if 'content' in delta:
                     return {
                         'type': 'message',
-                        'content': self.parse_delta_content(delta['content'])
+                        'content': self._parse_delta_content(delta['content'])
                     }
             return {'type': 'other', 'data': data}
         except json.JSONDecodeError:
             return {'type': 'error', 'message': f'Failed to parse: {line}'}
     
-    def parse_response(self,response: requests.Response) -> dict[str, any]:
+    def _parse_response(self,response: requests.Response) -> dict[str, any]:
         """Parse and print the SSE chat response with improved organization."""
         accumulated = {
             'text': '',
@@ -125,7 +124,7 @@ class CortexChat:
 
         for line in response.iter_lines():
             if line:
-                result = self.process_sse_line(line.decode('utf-8'))
+                result = self._process_sse_line(line.decode('utf-8'))
                 
                 if result.get('type') == 'message':
                     content = result['content']
@@ -164,11 +163,7 @@ class CortexChat:
             for result in accumulated['tool_results']:
                 for k,v in result.items():
                     if k == 'content':
-                        if DEBUG:
-                            print(v)
                         for content in v:
-                            if DEBUG:
-                                print(content)
                             if 'sql' in content['json']:
                                 sql = content['json']['sql']
                             elif 'searchResults' in content['json']:
@@ -181,5 +176,5 @@ class CortexChat:
         return {"text": text, "sql": sql, "citations": citations}
        
     def chat(self, query: str) -> any:
-        response = self.retrieve_response(query)
+        response = self._retrieve_response(query)
         return response
