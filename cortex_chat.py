@@ -102,7 +102,7 @@ class CortexChat:
                 return {'type': 'done'}
                 
             data = json.loads(json_str)
-            if data.get('object') == 'messages.delta':
+            if data.get('object') == 'message.delta':
                 delta = data.get('delta', {})
                 if 'content' in delta:
                     return {
