@@ -1,4 +1,4 @@
-# Integrate Cortex Agents with Slack
+# Getting Started with Cortex Agents and Slack
 
 ## Overview
 
