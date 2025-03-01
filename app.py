@@ -23,7 +23,6 @@ HOST = os.getenv("HOST")
 USER = os.getenv("DEMO_USER")
 DATABASE = os.getenv("DEMO_DATABASE")
 SCHEMA = os.getenv("DEMO_SCHEMA")
-PASSWORD = os.getenv("DEMO_USER_PASSWORD")
 ROLE = os.getenv("DEMO_USER_ROLE")
 WAREHOUSE = os.getenv("WAREHOUSE")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
@@ -264,7 +263,8 @@ def init():
 
     conn = snowflake.connector.connect(
         user=USER,
-        password=PASSWORD,
+        authenticator="SNOWFLAKE_JWT",
+        private_key_file=RSA_PRIVATE_KEY_PATH,
         account=ACCOUNT,
         warehouse=WAREHOUSE,
         role=ROLE,
