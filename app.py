@@ -5,7 +5,6 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 import snowflake.connector
 import pandas as pd
 from snowflake.core import Root
-import generate_jwt
 from dotenv import load_dotenv
 import matplotlib
 import matplotlib.pyplot as plt 
@@ -278,7 +277,9 @@ def init():
         SEARCH_SERVICE,
         SEMANTIC_MODEL,
         MODEL, 
-        generate_jwt.JWTGenerator(ACCOUNT,USER,RSA_PRIVATE_KEY_PATH).get_token())
+        ACCOUNT,
+        USER,
+        RSA_PRIVATE_KEY_PATH)
 
     print(">>>>>>>>>> Init complete")
     return conn,jwt,cortex_app

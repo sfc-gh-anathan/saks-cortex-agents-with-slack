@@ -1,5 +1,7 @@
 import requests
 import json
+import generate_jwt
+from generate_jwt import JWTGenerator
 
 DEBUG = False
 
@@ -9,13 +11,18 @@ class CortexChat:
             search_service: str, 
             semantic_model: str,
             model: str, 
-            jwt: str
+            account: str,
+            user: str,
+            private_key_path: str
         ):
         self.agent_url = agent_url
         self.model = model
         self.search_service = search_service
         self.semantic_model = semantic_model
-        self.jwt = jwt
+        self.account = account
+        self.user = user
+        self.private_key_path = private_key_path
+        self.jwt = JWTGenerator(self.account, self.user, self.private_key_path).get_token()
 
     def _retrieve_response(self, query: str, limit=1) -> dict[str, any]:
         url = self.agent_url
@@ -65,6 +72,16 @@ class CortexChat:
             },
         }
         response = requests.post(url, headers=headers, json=data)
+
+        if response.status_code == 401:  # Unauthorized - likely expired JWT
+            print("JWT has expired. Generating new JWT...")
+            # Generate new token
+            self.jwt = JWTGenerator(self.account, self.user, self.private_key_path).get_token()
+            # Retry the request with the new token
+            headers["Authorization"] = f"Bearer {self.jwt}"
+            print("New JWT generated. Sending new request to Cortex Agents API. Please wait...")
+            response = requests.post(url, headers=headers, json=data)
+
         if DEBUG:
             print(response.text)
         if response.status_code == 200:
