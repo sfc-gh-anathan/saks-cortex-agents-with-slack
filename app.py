@@ -64,7 +64,7 @@ Were polished and ready, the hype never delayed.
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": f":dash_board: Let's BUILD!",
+                    "text": f":snowflake: Let's BUILD!",
                 }
             },
         ]                
@@ -85,7 +85,7 @@ def handle_message_events(ack, body, say):
                     "type": "section",
                     "text": {
                         "type": "plain_text",
-                        "text": ":dash_board: Snowflake Cortex AI is generating a response. Please wait...",
+                        "text": ":snowflake: Snowflake Cortex AI is generating a response. Please wait...",
                     }
                 },
                 {
@@ -157,7 +157,12 @@ def display_agent_response(content,say):
             ]
         )
         if len(df.columns) > 1:
-            chart_img_url = plot_chart(df)
+            chart_img_url = None
+            try:
+                chart_img_url = plot_chart(df)
+            except Exception as e:
+                error_info = f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}"
+                print(f"Warning: Data likely not suitable for displaying as a chart. {error_info}")
             if chart_img_url is not None:
                 say(
                     text = "Chart",
