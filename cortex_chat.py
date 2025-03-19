@@ -87,8 +87,8 @@ class CortexChat:
         if response.status_code == 200:
             return self._parse_response(response)
         else:
-            print(f"Error: Received status code {response.status_code}")
-            return {"text": response.text}
+            print(f"Error: Received status code {response.status_code} with message {response.json()}")
+            return None
 
     def _parse_delta_content(self,content: list) -> dict[str, any]:
         """Parse different types of content from the delta."""
