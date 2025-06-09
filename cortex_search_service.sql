@@ -8,7 +8,7 @@ select relative_path, SNOWFLAKE.CORTEX.PARSE_DOCUMENT(@DASH_DB.DASH_SCHEMA.DASH_
 create or replace table parsed_pdfs as (
     with tmp_parsed as (select
         relative_path,
-        SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER(TO_VARIANT(data):content, 'MARKDOWN', 1800, 300) AS chunks
+        SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER(TO_VARIANT(data):content, 'MARKDOWN', 300, 100) AS chunks
     from parse_pdfs where TO_VARIANT(data):content is not null)
     select
         TO_VARCHAR(c.value) as PAGE_CONTENT,
