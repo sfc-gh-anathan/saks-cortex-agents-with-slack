@@ -4,6 +4,8 @@ rsa_key.pub
 .env
 __pycache__
 .venv/
+.jpg
+.jpeg
 venv/bin/*
 venv/lib/*
 venv/include/*
