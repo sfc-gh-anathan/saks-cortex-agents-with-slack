@@ -4,10 +4,9 @@ rsa_key.pub
 .env
 __pycache__
 .venv/
-.jpg
-.jpeg
 venv/bin/*
 venv/lib/*
 venv/include/*
 venv/share/*
 default.sqlite
+environment_setup.txt
