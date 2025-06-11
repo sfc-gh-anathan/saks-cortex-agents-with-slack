@@ -29,11 +29,19 @@ https://tools.slack.dev/bolt-python/getting-started/
     -- Load files
         semantic files into dash_semantic_models
         pdfs into dash_pdfs
+    -- Add Table through "Add Data" for retail_sales_dataset.csv - name file retail_sales_dataset
+    -- Validate both tables exist
+    -- Validate semantic models via Cortex Analyst in AI & ML
+    -- You will need to OVERWRITE the database name with yours (the one with your initials if you needed to do that)
+    -- Run cortex_search_service.sql
 
 3. Create Slack App from manifest.json & set .env for BOT and APP tokens
+    -- Create your tokens: 
+        add a scope of connections:write for the app scope
     -- add your APP and BOT tokens from your Slack Application configuration menus into .env
 
 4. Create key-pairs & update USER
+    -- see below
 
 5. Run application
 
