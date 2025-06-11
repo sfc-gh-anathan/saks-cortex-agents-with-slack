@@ -9,4 +9,4 @@ venv/lib/*
 venv/include/*
 venv/share/*
 default.sqlite
-environment_setup.txt
+THIS IS THE DEVELOPMENT INSTANCE.TXT
