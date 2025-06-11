@@ -58,6 +58,10 @@ MIIBIj...
 -----END PUBLIC KEY-----
 -- set the key on the Snowflake user
 
-
-
 ALTER USER example_user SET RSA_PUBLIC_KEY='MIIBIjANBgkqh...';
+
+
+## to work with retail data
+Use Add Data to upload the .csv file
+Add the semantic model to the semantic model stage
+change the .env comments to use the retail .yaml file
