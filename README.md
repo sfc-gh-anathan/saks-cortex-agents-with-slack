@@ -20,16 +20,22 @@ https://tools.slack.dev/bolt-python/getting-started/
 1. Copy github repo
     -- in your project: rename fill-in-the-env.txt to .env
     -- update your .env file per instructions at top of page
-    -- you can retrieve your APP and BOT tokens from your Slack Application configuration menus
+
 
 2. Set up Snowflake with preparatory scripts
+    -- setup.sql
+        validate database and stages
+        validate support_tickets.csv
+    -- Load files
+        semantic files into dash_semantic_models
+        pdfs into dash_pdfs
 
 3. Create Slack App from manifest.json & set .env for BOT and APP tokens
+    -- add your APP and BOT tokens from your Slack Application configuration menus into .env
 
 4. Create key-pairs & update USER
 
 5. Run application
-
 
 
 
