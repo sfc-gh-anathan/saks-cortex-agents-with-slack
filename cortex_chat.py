@@ -49,7 +49,7 @@ class CortexChat:
                 {
                     "tool_spec": {
                         "type": "cortex_search",
-                        "name": "vehicles_info_search"
+                        "name": "info_search"
                     }
                 },
                 {
@@ -60,7 +60,7 @@ class CortexChat:
                 }
             ],
             "tool_resources": {
-                "vehicles_info_search": {
+                "info_search": {
                     "name": self.search_service,
                     "max_results": limit,
                     "title_column": "title",
