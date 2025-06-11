@@ -1,0 +1,23 @@
+# -------------IMPORTANT!!!!! --------------
+# If you are not working on a trial Snowflake account...
+# For every instance of "DASH_DB" below, replace with DASH_DB_<your initials>
+# Update: USERNAME, USERROLE, ACCOUNT, HOST, AGENT_ENDPOINT
+
+#SLACK_BOT_TOKEN=your_token_here   # <------ paste BOT token here
+#SLACK_APP_TOKEN=your_token_here   # <------ paste APP token here
+
+DEMO_DATABASE='DASH_DB'    #<----------------- HERE IF NOT TRIAL
+DEMO_SCHEMA='DASH_SCHEMA'
+WAREHOUSE='DASH_S'     #<----------------- HERE IF NOT TRIAL
+DEMO_USER='USERNAME'#      #<----------------- HERE
+DEMO_USER_ROLE='USERROLE'   #<----------------- HERE
+SEMANTIC_MODEL='@DASH_DB.DASH_SCHEMA.DASH_SEMANTIC_MODELS/support_tickets_semantic_model.yaml'     #<----------------- HERE IF NOT TRIAL
+SEARCH_SERVICE='DASH_DB.DASH_SCHEMA.vehicles_info'     #<----------------- HERE IF NOT TRIAL
+ACCOUNT='SFSENORTHAMERICA-ANATHAN_AWS'     #<----------------- HERE
+HOST='ABC1234.us-east-1.snowflakecomputing.com'    #<----------------- HERE
+AGENT_ENDPOINT='https://ABC1234.us-east-1.snowflakecomputing.com/api/v2/cortex/agent:run'     #<----------------- HERE
+#PRIVATE_KEY_FILE_PWD=''
+      
+# You may NOT edit below values  
+RSA_PRIVATE_KEY_PATH='rsa_key.p8'
+MODEL = 'claude-3-7-sonnet'
