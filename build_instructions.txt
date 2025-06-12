@@ -9,7 +9,7 @@ Cortex Agents simplify AI-powered data interactions via a REST API, combining hy
 https://github.com/sfc-gh-anathan/saks-cortex-agents-with-slack 
 
 -- path to quickstart
--- Note that this github repo has been SIGNIFICANTLY MODIFIED. This is only for additional context
+-- Note that this github repo has been SIGNIFICANTLY MODIFIED. It still has additional contextual information on the lab and installation instructions and links that may be helpful. This is only for additional context
 [QuickStart Guide](https://quickstarts.snowflake.com/guide/integrate_snowflake_cortex_agents_with_slack/index.html).
 
 -- instructions for getting set up in slack
@@ -66,13 +66,12 @@ NOTE: in multiple instances it is necessary to change the name of the default da
     -- see instructions below
 
 7. Run application
-
-
-## To create a virtual python3 environment
-python3 -m venv .venv
-source .venv/bin/activate
-which python3
-pip install -r requirements.txt
+    -- build the virtual environment and install libraries
+        ## To create a virtual python3 environment
+        python3 -m venv .venv
+        source .venv/bin/activate
+        which python3
+        pip install -r requirements.txt
 
 
 ## To generate keys
