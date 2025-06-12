@@ -7,7 +7,7 @@
     },
     "features": {
         "bot_user": {
-            "display_name": "apple",
+            "display_name": "snowflake-agent",
             "always_online": false
         }
     },
