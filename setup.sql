@@ -1,3 +1,7 @@
+-- IF YOU ARE NOT RUNNING IN A TRIAL ACCOUNT YOU MUST UPDATE THE DATABASE NAMES
+-- USE THE PATTERN DASH_DB_<your initials> 
+
+
 -- Run the following statements to create a database, schema, and a table with data loaded from AWS S3.
 
 CREATE DATABASE IF NOT EXISTS DASH_DB;
