@@ -17,37 +17,52 @@ https://tools.slack.dev/bolt-python/getting-started/
 
 ## Saks Hands-on-Lab
 
-1. Copy github repo
+NOTE: in multiple instances it is necessary to change the name of the default databases with a suffix of your initials.
+
+1. Copy github repo to a directory
     -- in your project: rename fill-in-the-env.txt to .env
     -- update your .env file per instructions at top of page
 
-
 2. Set up Snowflake with preparatory scripts
-    -- setup.sql
+    -- update setup.sql
+    -- run setup.sql
         validate database and stages
-        validate support_tickets.csv
-    -- Load files
-        semantic files into dash_semantic_models
-        pdfs into dash_pdfs
-    -- Add Table through "Add Data" for retail_sales_dataset.csv - name file retail_sales_dataset
-    -- Validate both tables exist
-    -- Validate semantic models via Cortex Analyst in AI & ML
-    -- You will need to OVERWRITE the database name with yours (the one with your initials if you needed to do that)
-    -- Run cortex_search_service.sql
+    -- Load semantic model retail_sales_data.yaml into dash_semantic_models
+    -- Load pdfs into dash_pdfs
+    -- Add Table through "Add Data" UI
+        -- create table from retail_sales_dataset.csv - name it "retail_sales_dataset"
+        -- validate data exists
 
-3. Create Slack App from manifest.json & set .env for BOT and APP tokens
+3. Update semantic model
+    -- Validate semantic model via Cortex Analyst in AI & ML
+    -- *******  You will need to OVERWRITE the database name with yours (the one with your initials if you are not on a trial)
+    -- Make sure to save the semantic model
+    -- explore the data briefly
+
+4. Setup the Cortex Search Service
+    -- update DASH_DB database names as above if not on a trial
+    -- Run cortex_search_service.sql
+        -- This will take several minutes to load
+    -- Validate the creation of the service within the database's schema
+    -- Open the Cortex Search Services to query the data
+
+5. Create Slack App 
+    -- go to https://tools.slack.dev/bolt-python/getting-started/
+    -- Then "Your Apps"
+    -- Then Create New App from "Manifest"
+        -- paste the manifest json into the text box 
+    -- Associate the with a channel
+        -- create a new slack channel
+        -- Validate that the app can be associated with a channel
+            -- if it doesn't show up to add to a channel, then enter /invite @[Your App's Name]        
     -- Create your tokens: 
         add a scope of connections:write for the app scope
     -- add your APP and BOT tokens from your Slack Application configuration menus into .env
 
-4. Create key-pairs & update USER
-    -- see below
+6. Create key-pairs & update USER
+    -- see instructions below
 
-5. Run application
-
-
-
-
+7. Run application
 
 
 ## To create a virtual python3 environment
