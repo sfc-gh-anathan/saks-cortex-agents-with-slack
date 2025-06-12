@@ -20,6 +20,7 @@ https://tools.slack.dev/bolt-python/getting-started/
 NOTE: in multiple instances it is necessary to change the name of the default databases with a suffix of your initials.
 
 1. Copy github repo to a directory
+    -- create a directory for your application
     -- in your project: rename fill-in-the-env.txt to .env
     -- update your .env file per instructions at top of page
 
