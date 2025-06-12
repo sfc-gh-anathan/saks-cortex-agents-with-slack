@@ -38,7 +38,7 @@ NOTE: in multiple instances it is necessary to change the name of the default da
     -- Validate semantic model via Cortex Analyst in AI & ML
     -- *******  You will need to OVERWRITE the database name with yours (the one with your initials if you are not on a trial)
     -- Make sure to save the semantic model
-    -- explore the data briefly
+    -- query the data briefly
 
 4. Setup the Cortex Search Service
     -- update DASH_DB database names if not on a trial
@@ -60,8 +60,8 @@ NOTE: in multiple instances it is necessary to change the name of the default da
         -- Validate that the app can be associated with a channel
             -- if it doesn't show up to add to a channel, then enter /invite @[Your App's Name]        
     -- Create your tokens: 
-        add a scope of connections:write for the app scope
-    -- add your APP and BOT tokens from your Slack Application configuration menus into .env
+        -- add a scope of connections:write for the app scope
+        -- add your APP and BOT tokens from your Slack Application configuration menus into .env
 
 6. Create key-pairs & update USER
     -- see instructions below
