@@ -51,6 +51,9 @@ NOTE: in multiple instances it is necessary to change the name of the default da
     -- Then "Your Apps"
     -- Then Create New App from "Manifest"
         -- paste the manifest json into the text box 
+        -- add app level token - connections: write, call it saks-slack-app-token
+        -- add the saks-logo
+        -- install to your slack workspace
     -- Associate the with a channel
         -- create a new slack channel
         -- Validate that the app can be associated with a channel
@@ -89,8 +92,3 @@ MIIBIj...
 
 ALTER USER example_user SET RSA_PUBLIC_KEY='MIIBIjANBgkqh...';
 
-
-## to work with retail data
-Use Add Data to upload the .csv file
-Add the semantic model to the semantic model stage
-change the .env comments to use the retail .yaml file
