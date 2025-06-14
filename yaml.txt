@@ -1,0 +1,180 @@
+name: retail_sales_data
+tables:
+  - name: RETAIL_SALES_DATASET
+    base_table:
+      database: SLACK_DEMO
+      schema: SLACK_SCHEMA
+      table: RETAIL_SALES_DATASET
+    dimensions:
+      - name: CUSTOMER_ID
+        expr: CUSTOMER_ID
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - CUST001
+          - CUST003
+          - CUST013
+        description: Unique identifier for each customer in the retail sales dataset.
+        synonyms:
+          - client_id
+          - customer_number
+          - client_number
+          - account_id
+          - account_number
+          - user_id
+          - patron_id
+          - shopper_id
+      - name: GENDER
+        expr: GENDER
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - Male
+          - Female
+        description: The gender of the customer who made the purchase.
+        synonyms:
+          - sex
+          - male_female
+          - demographic
+          - sex_type
+          - male_or_female
+          - gender_type
+      - name: PRODUCT_CATEGORY
+        expr: PRODUCT_CATEGORY
+        data_type: VARCHAR(16777216)
+        sample_values:
+          - Beauty
+          - Clothing
+          - Electronics
+        description: The **category of the product being sold**, such as Beauty, Clothing, or Electronics, which helps to group similar products together for analysis and reporting purposes. Use this for questions about types of products or product groupings.
+        synonyms:
+          - product_type
+          - item_category
+          - product_group
+          - category_name
+          - product_classification
+          - item_type
+          - product_segment
+    time_dimensions:
+      - name: DATE
+        expr: DATE
+        data_type: DATE
+        sample_values:
+          - '2023-11-24'
+          - '2023-02-27'
+          - '2023-01-13'
+        description: Date of retail sales transaction. Use this for questions related to sales over specific periods, trends, or chronological ordering.
+        synonyms:
+          - day
+          - calendar_date
+          - transaction_date
+          - date_of_purchase
+          - purchase_date
+          - sales_date
+    facts:
+      - name: TRANSACTION_ID
+        expr: TRANSACTION_ID
+        data_type: NUMBER(38,0)
+        sample_values:
+          - '1'
+          - '2'
+          - '3'
+        description: Unique identifier for each sales transaction.
+        synonyms:
+          - order_id
+          - transaction_number
+          - purchase_id
+          - sale_id
+          - invoice_number
+          - record_id
+      - name: AGE
+        expr: AGE
+        data_type: NUMBER(38,0)
+        sample_values:
+          - '34'
+          - '26'
+          - '50'
+        description: The **age of the customer** who made a purchase. Use this for demographic analysis.
+        synonyms:
+          - years_old
+          - years_of_age
+          - age_in_years
+          - years_alive
+          - birth_age
+          - person_age
+      - name: QUANTITY
+        expr: QUANTITY
+        data_type: NUMBER(38,0)
+        sample_values:
+          - '3'
+          - '2'
+          - '1'
+        description: The **quantity of items sold** in a single transaction. Use this for counting items sold or calculating average quantities.
+        synonyms:
+          - amount
+          - count
+          - volume
+          - number_of_items
+          - total_items
+          - item_count
+          - quantity_ordered
+          - units_sold
+      - name: PRICE_PER_UNIT
+        expr: PRICE_PER_UNIT
+        data_type: NUMBER(38,0)
+        sample_values:
+          - '50'
+          - '500'
+          - '30'
+        description: The **price of a single unit of a product**. Use this for pricing analysis.
+        synonyms:
+          - unit_price
+          - cost_per_item
+          - price_per_item
+          - item_price
+          - unit_cost
+          - cost_per_unit
+      - name: TOTAL_AMOUNT
+        expr: TOTAL_AMOUNT
+        data_type: NUMBER(38,0)
+        sample_values:
+          - '150'
+          - '1000'
+          - '30'
+        description: The **total sales amount for each transaction**. This is a key metric for revenue and sales performance.
+        synonyms:
+          - total_cost
+          - grand_total
+          - total_price
+          - total_value
+          - overall_amount
+          - total_sum
+          - total_payment
+          - total_revenue
+    description: This table stores retail sales data, capturing individual transactions with details on customer demographics, product information, and sales amounts.
+    synonyms:
+      - retail_sales
+      - sales_data
+      - transaction_log
+      - customer_purchases
+      - sales_dataset
+      - retail_transactions
+      - customer_sales
+      - transaction_history
+verified_queries:
+  - name: totals over time
+    question: WHAT ARE TOTAL SALES IN UNITS FOR EACH PRODUCT CATEGORY?
+    use_as_onboarding_question: false
+    sql: SELECT product_category, MIN(date) AS start_date, MAX(date) AS end_date, SUM(quantity) AS total_units_sold FROM retail_sales_dataset GROUP BY product_category ORDER BY total_units_sold DESC NULLS LAST
+    verified_by: Adam Nathan
+    verified_at: 1749850517
+  - name: shopping by gender pie chart
+    question: what is the percentage of shoppers by gender?
+    use_as_onboarding_question: false
+    sql: SELECT gender, COUNT(DISTINCT customer_id) / NULLIF(NULLIF((SELECT COUNT(DISTINCT customer_id) FROM retail_sales_dataset), 0), 0) AS pct_of_total FROM retail_sales_dataset GROUP BY gender ORDER BY pct_of_total DESC NULLS LAST
+    verified_by: Adam Nathan
+    verified_at: 1749853305
+custom_instructions: |-
+  When you answer a question ALWAYS return the result as the minimum number of columns that can be used to create either a pie chart, a bar chart, a scatter plor or a line chart series. Include only the columns that will satisfy one of these classes of charts. 
+
+  It is specifically designed to answer questions that require **numerical analysis, aggregation, calculations, and structured querying related to sales performance, product quantities, total amounts, customer demographics, and transaction dates.
+
+  You know that it is incredibly wrong to use this model except when inquiries relate to product, sales, quantity, gender and age or price per unit. You would never be foolish enough to do anything like that!
