@@ -148,6 +148,40 @@ def display_agent_response(content, say, app_client): # Added app_client paramet
     if content['sql']:
         sql = content['sql']
 
+        # --- Display SQL Code ---
+        say(
+            text = "Here's the SQL query:",
+            blocks=[
+                {
+                    "type": "rich_text",
+                    "elements": [
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "text": "Here's the SQL query:",
+                                    "style": {
+                                        "bold": True
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "type": "rich_text_preformatted",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "text": sql
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        )
+        # --- End Display SQL Code ---
+
         df = pd.read_sql(sql, CONN)
 
         if DEBUG:
@@ -242,6 +276,13 @@ def display_agent_response(content, say, app_client): # Added app_client paramet
                 print("Displayed single-row answer as formatted text.")
             return # Exit function as no chart is needed
 
+        # --- Limit displayed rows and indicate truncation ---
+        original_rows = len(df)
+        display_df = df.head(10) # Limit to first 10 rows for display
+        truncated_message = ""
+        if original_rows > 10:
+            truncated_message = "\n\n(Results truncated to 10 lines.)"
+
         # --- Display DataFrame as Text Table (if not single row) ---
         say(
             text = "Answer:",
@@ -266,7 +307,7 @@ def display_agent_response(content, say, app_client): # Added app_client paramet
                             "elements": [
                                 {
                                     "type": "text",
-                                    "text": f"{df.to_string()}"
+                                    "text": f"{display_df.to_string()}{truncated_message}"
                                 }
                             ]
                         }
@@ -297,7 +338,7 @@ def display_agent_response(content, say, app_client): # Added app_client paramet
             )
         else:
             if DEBUG:
-                print("No suitable chart could be generated for the returned data.")
+                print("No suitable chart could be generated for this data.")
             say(
                 text = "No chart could be generated for this data.",
                 blocks = [
