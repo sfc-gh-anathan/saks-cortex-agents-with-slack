@@ -2,8 +2,8 @@ name: retail_sales_data
 tables:
   - name: RETAIL_SALES_DATASET
     base_table:
-      database: DASH_DB
-      schema: DASH_SCHEMA
+      database: SLACK_DEMO
+      schema: SLACK_SCHEMA
       table: RETAIL_SALES_DATASET
     dimensions:
       - name: CUSTOMER_ID
@@ -44,7 +44,7 @@ tables:
           - Beauty
           - Clothing
           - Electronics
-        description: The category of the product being sold, such as Beauty, Clothing, or Electronics, which helps to group similar products together for analysis and reporting purposes.
+        description: The **category of the product being sold**, such as Beauty, Clothing, or Electronics, which helps to group similar products together for analysis and reporting purposes. Use this for questions about types of products or product groupings.
         synonyms:
           - product_type
           - item_category
@@ -61,7 +61,7 @@ tables:
           - '2023-11-24'
           - '2023-02-27'
           - '2023-01-13'
-        description: Date of retail sales transaction.
+        description: Date of retail sales transaction. Use this for questions related to sales over specific periods, trends, or chronological ordering.
         synonyms:
           - day
           - calendar_date
@@ -92,7 +92,7 @@ tables:
           - '34'
           - '26'
           - '50'
-        description: The age of the customer who made a purchase.
+        description: The **age of the customer** who made a purchase. Use this for demographic analysis.
         synonyms:
           - years_old
           - years_of_age
@@ -107,7 +107,7 @@ tables:
           - '3'
           - '2'
           - '1'
-        description: The quantity of items sold in a single transaction.
+        description: The **quantity of items sold** in a single transaction. Use this for counting items sold or calculating average quantities.
         synonyms:
           - amount
           - count
@@ -124,7 +124,7 @@ tables:
           - '50'
           - '500'
           - '30'
-        description: The price of a single unit of a product, representing the cost to the customer per individual item sold.
+        description: The **price of a single unit of a product**. Use this for pricing analysis.
         synonyms:
           - unit_price
           - cost_per_item
@@ -139,7 +139,7 @@ tables:
           - '150'
           - '1000'
           - '30'
-        description: The total amount of sales for each transaction, representing the overall value of the sale in the retail dataset.
+        description: The **total sales amount for each transaction**. This is a key metric for revenue and sales performance.
         synonyms:
           - total_cost
           - grand_total
@@ -160,9 +160,40 @@ tables:
       - customer_sales
       - transaction_history
 verified_queries:
-  - name: top_sellers
-    question: Which product are our top sellers?
+  - name: totals over time
+    question: WHAT ARE TOTAL SALES IN UNITS FOR EACH PRODUCT CATEGORY?
     use_as_onboarding_question: false
-    sql: SELECT product_category, MIN(date) AS start_date, MAX(date) AS end_date, SUM(quantity) AS total_quantity FROM retail_sales_dataset GROUP BY product_category ORDER BY total_quantity DESC NULLS LAST
+    sql: SELECT product_category, MIN(date) AS start_date, MAX(date) AS end_date, SUM(quantity) AS total_units_sold FROM retail_sales_dataset GROUP BY product_category ORDER BY total_units_sold DESC NULLS LAST
     verified_by: Adam Nathan
-    verified_at: 1749654846
+    verified_at: 1749850517
+  - name: shopping by gender pie chart
+    question: what is the percentage of shoppers by gender?
+    use_as_onboarding_question: false
+    sql: SELECT gender, COUNT(DISTINCT customer_id) / NULLIF(NULLIF((SELECT COUNT(DISTINCT customer_id) FROM retail_sales_dataset), 0), 0) AS pct_of_total FROM retail_sales_dataset GROUP BY gender ORDER BY pct_of_total DESC NULLS LAST
+    verified_by: Adam Nathan
+    verified_at: 1749853305
+custom_instructions: |-
+  Only use this model except when inquiries relate to product, sales, quantity, gender and age or price per unit. You would never be foolish enough to do anything like that! If you don't know always default to unstructured documents when it isn't clear and don't use this structured data.
+
+  When you answer a question ALWAYS return the result as the minimum number of columns that can be used to create either a pie chart, a bar chart, a scatter plot or a line chart series. Include only the columns that will satisfy one of these classes of charts. If you don't need a date column, for example, don't include it.
+
+  When you return query results, make sure they are returned in the appropriate format:
+
+  Chart Data Requirements for LLM
+  Multi-Line Chart:
+  Column 1: Date/Time (X-axis)
+  Column 2: String/Category (Group/Line)
+  Column 3: Numeric (Y-axis)
+  Scatter Plot:
+  Column 1: Numeric (X-axis)
+  Column 2: Numeric (Y-axis)
+  Optional Column 3: String/Category/Numeric (Group/Color)
+  Simple Line Chart:
+  Column 1: Date/Time (X-axis)
+  Column 2: Numeric (Y-axis)
+  Pie Chart:
+  Column 1: String/Category (Labels - max 10 unique values)
+  Column 2: Numeric (Values)
+  Bar Chart:
+  Column 1: String/Category/Date (X-axis)
+  Column 2: Numeric (Y-axis)
