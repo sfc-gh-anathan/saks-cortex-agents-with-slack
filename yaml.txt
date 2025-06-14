@@ -173,8 +173,27 @@ verified_queries:
     verified_by: Adam Nathan
     verified_at: 1749853305
 custom_instructions: |-
-  When you answer a question ALWAYS return the result as the minimum number of columns that can be used to create either a pie chart, a bar chart, a scatter plor or a line chart series. Include only the columns that will satisfy one of these classes of charts. 
+  Only use this model except when inquiries relate to product, sales, quantity, gender and age or price per unit. You would never be foolish enough to do anything like that! If you don't know always default to unstructured documents when it isn't clear and don't use this structured data.
 
-  It is specifically designed to answer questions that require **numerical analysis, aggregation, calculations, and structured querying related to sales performance, product quantities, total amounts, customer demographics, and transaction dates.
+  When you answer a question ALWAYS return the result as the minimum number of columns that can be used to create either a pie chart, a bar chart, a scatter plot or a line chart series. Include only the columns that will satisfy one of these classes of charts. If you don't need a date column, for example, don't include it.
 
-  You know that it is incredibly wrong to use this model except when inquiries relate to product, sales, quantity, gender and age or price per unit. You would never be foolish enough to do anything like that!
+  When you return query results, make sure they are returned in the appropriate format:
+
+  Chart Data Requirements for LLM
+  Multi-Line Chart:
+  Column 1: Date/Time (X-axis)
+  Column 2: String/Category (Group/Line)
+  Column 3: Numeric (Y-axis)
+  Scatter Plot:
+  Column 1: Numeric (X-axis)
+  Column 2: Numeric (Y-axis)
+  Optional Column 3: String/Category/Numeric (Group/Color)
+  Simple Line Chart:
+  Column 1: Date/Time (X-axis)
+  Column 2: Numeric (Y-axis)
+  Pie Chart:
+  Column 1: String/Category (Labels - max 10 unique values)
+  Column 2: Numeric (Values)
+  Bar Chart:
+  Column 1: String/Category/Date (X-axis)
+  Column 2: Numeric (Y-axis)
