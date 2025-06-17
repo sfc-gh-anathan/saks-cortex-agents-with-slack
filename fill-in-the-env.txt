@@ -1,0 +1,20 @@
+# You may edit the values below to match your Snowflake account and Slack bot
+
+ACCOUNT='SOMEACCOUNTNAME-ANATHAN_AWS'
+HOST='SOMEACCOUNTNAME-ANATHAN_AWS.snowflakecomputing.com'
+# the correct locator/account path here is not consistent. Use what is below or alter
+AGENT_ENDPOINT='https://ABC54834.us-east-1.snowflakecomputing.com/api/v2/cortex/agent:run'
+DEMO_USER='ANATHAN'
+DEMO_USER_ROLE='ACCOUNTADMIN'
+SLACK_BOT_TOKEN=
+SLACK_APP_TOKEN=
+
+# do not edit below values unless you know what you are doing 
+
+DEMO_DATABASE='SLACK_DEMO'
+DEMO_SCHEMA='SLACK_SCHEMA'
+WAREHOUSE='SLACK_S'
+SEMANTIC_MODEL='@SLACK_DEMO.SLACK_SCHEMA.SLACK_SEMANTIC_MODELS/retail_sales_data.yaml'  
+SEARCH_SERVICE='SLACK_DEMO.SLACK_SCHEMA.info_search'
+RSA_PRIVATE_KEY_PATH='rsa_key.p8'
+MODEL = 'claude-4-sonnet' 
