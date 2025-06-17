@@ -1,8 +1,3 @@
--- ******************************************************************
--- update your database name everywhere to SLACK_DEMO_<your initials>
--- update warehouse to DASH_S_<your initials>
--- ******************************************************************
-
 USE SLACK_DEMO.SLACK_SCHEMA;
 USE WAREHOUSE SLACK_S;
 
@@ -43,4 +38,4 @@ AS (
     FROM parsed_pdfs
 );
 
-drop warehouse TEMP_LARGE;
+drop warehouse TEMP_MEDIUM;
