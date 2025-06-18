@@ -4,7 +4,7 @@ ACCOUNT='SOMEACCOUNTNAME-ANATHAN_AWS'
 HOST='SOMEACCOUNTNAME-ANATHAN_AWS.snowflakecomputing.com'
 # the correct locator/account path here is not consistent. Use what is below or alter
 AGENT_ENDPOINT='https://ABC54834.us-east-1.snowflakecomputing.com/api/v2/cortex/agent:run'
-DEMO_USER='ANATHAN'
+DEMO_USER='JANEDOE'
 DEMO_USER_ROLE='ACCOUNTADMIN'
 SLACK_BOT_TOKEN=
 SLACK_APP_TOKEN=
