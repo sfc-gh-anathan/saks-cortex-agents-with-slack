@@ -44,7 +44,7 @@ tables:
           - Beauty
           - Clothing
           - Electronics
-        description: The **category of the product being sold**, such as Beauty, Clothing, or Electronics, which helps to group similar products together for analysis and reporting purposes. Use this for questions about types of products or product groupings.
+        description: The category of the product being sold, such as Beauty, Clothing, or Electronics, which helps to group similar products together for analysis and reporting purposes. Use this for questions about types of products or product groupings.
         synonyms:
           - product_type
           - item_category
@@ -54,14 +54,14 @@ tables:
           - item_type
           - product_segment
     time_dimensions:
-      - name: DATE
+      - name: TRANSACTION_DATE
         expr: DATE
         data_type: DATE
         sample_values:
           - '2023-11-24'
           - '2023-02-27'
           - '2023-01-13'
-        description: Date of retail sales transaction. Use this for questions related to sales over specific periods, trends, or chronological ordering.
+        description: Date of a specific sales transaction. Contains historical data ONLY for the years 2023 and 2024. Use this for filtering sales by specific past dates, weeks, or months, or for ordering results chronologically. DO NOT use for future dates or trend analysis.
         synonyms:
           - day
           - calendar_date
@@ -69,6 +69,7 @@ tables:
           - date_of_purchase
           - purchase_date
           - sales_date
+          - historical_date
     facts:
       - name: TRANSACTION_ID
         expr: TRANSACTION_ID
@@ -92,7 +93,7 @@ tables:
           - '34'
           - '26'
           - '50'
-        description: The **age of the customer** who made a purchase. Use this for demographic analysis.
+        description: The age of the customer who made a purchase. Use this for demographic analysis.
         synonyms:
           - years_old
           - years_of_age
@@ -107,7 +108,7 @@ tables:
           - '3'
           - '2'
           - '1'
-        description: The **quantity of items sold** in a single transaction. Use this for counting items sold or calculating average quantities.
+        description: The quantity of items sold in a single transaction. Use this for counting items sold or calculating average quantities.
         synonyms:
           - amount
           - count
@@ -124,7 +125,7 @@ tables:
           - '50'
           - '500'
           - '30'
-        description: The **price of a single unit of a product**. Use this for pricing analysis.
+        description: The price of a single unit of a product. Use this for pricing analysis.
         synonyms:
           - unit_price
           - cost_per_item
@@ -139,7 +140,7 @@ tables:
           - '150'
           - '1000'
           - '30'
-        description: The **total sales amount for each transaction**. This is a key metric for revenue and sales performance.
+        description: The total sales amount for each transaction. This is a key metric for revenue and sales performance.
         synonyms:
           - total_cost
           - grand_total
@@ -160,40 +161,72 @@ tables:
       - customer_sales
       - transaction_history
 verified_queries:
-  - name: totals over time
-    question: WHAT ARE TOTAL SALES IN UNITS FOR EACH PRODUCT CATEGORY?
-    use_as_onboarding_question: false
-    sql: SELECT product_category, MIN(date) AS start_date, MAX(date) AS end_date, SUM(quantity) AS total_units_sold FROM retail_sales_dataset GROUP BY product_category ORDER BY total_units_sold DESC NULLS LAST
-    verified_by: Adam Nathan
-    verified_at: 1749850517
   - name: shopping by gender pie chart
     question: what is the percentage of shoppers by gender?
     use_as_onboarding_question: false
     sql: SELECT gender, COUNT(DISTINCT customer_id) / NULLIF(NULLIF((SELECT COUNT(DISTINCT customer_id) FROM retail_sales_dataset), 0), 0) AS pct_of_total FROM retail_sales_dataset GROUP BY gender ORDER BY pct_of_total DESC NULLS LAST
     verified_by: Adam Nathan
     verified_at: 1749853305
+  - name: total revenue
+    question: '"What was the total revenue in 2023?"'
+    use_as_onboarding_question: false
+    sql: SELECT SUM(total_amount) AS total_revenue FROM retail_sales_dataset WHERE DATE_PART('year', transaction_date) = 2023
+    verified_by: Adam Nathan
+    verified_at: 1750270022
+  - name: distinct customer purchases
+    question: How many unique customers made a purchase in 2023?
+    use_as_onboarding_question: false
+    sql: SELECT COUNT(DISTINCT customer_id) AS unique_customers FROM retail_sales_dataset WHERE DATE_PART('year', transaction_date) = 2023
+    verified_by: Adam Nathan
+    verified_at: 1750270061
+  - name: sales by product category
+    question: What is the total sales amount for each product category?
+    use_as_onboarding_question: false
+    sql: SELECT product_category, SUM(total_amount) AS total_sales FROM retail_sales_dataset WHERE DATE_PART('year', transaction_date) = 2023 GROUP BY product_category ORDER BY total_sales DESC NULLS LAST
+    verified_by: Adam Nathan
+    verified_at: 1750270114
+  - name: order highest total sales by month
+    question: Which month in 2023 had the highest total sales?
+    use_as_onboarding_question: false
+    sql: SELECT DATE_TRUNC('MONTH', transaction_date) AS month, SUM(total_amount) AS monthly_sales FROM retail_sales_dataset WHERE DATE_PART('year', transaction_date) = 2023 GROUP BY month ORDER BY monthly_sales DESC NULLS LAST
+    verified_by: Adam Nathan
+    verified_at: 1750270227
+  - name: two dimension one fact query
+    question: For each product category, what was the total quantity sold to male vs female customers?
+    use_as_onboarding_question: false
+    sql: SELECT product_category, gender, SUM(quantity) AS total_quantity FROM retail_sales_dataset WHERE DATE_PART('year', transaction_date) = 2023 GROUP BY product_category, gender ORDER BY product_category, gender DESC NULLS LAST
+    verified_by: Adam Nathan
+    verified_at: 1750270285
+  - name: scatter of age x total sales
+    question: Plot the relationship between customer age and their total spending per transaction
+    use_as_onboarding_question: false
+    sql: SELECT age, total_amount FROM retail_sales_dataset WHERE DATE_PART('year', transaction_date) = 2023 ORDER BY age DESC NULLS LAST
+    verified_by: Adam Nathan
+    verified_at: 1750270466
 custom_instructions: |-
-  Only use this model except when inquiries relate to product, sales, quantity, gender and age or price per unit. You would never be foolish enough to do anything like that! If you don't know always default to unstructured documents when it isn't clear and don't use this structured data.
+  ### TOOL SCOPE AND RULES ###
 
-  When you answer a question ALWAYS return the result as the minimum number of columns that can be used to create either a pie chart, a bar chart, a scatter plot or a line chart series. Include only the columns that will satisfy one of these classes of charts. If you don't need a date column, for example, don't include it.
+  # 1. PURPOSE OF THIS TOOL
+  # This tool provides access to the RETAIL_SALES_DATASET. It ONLY answers quantitative questions about HISTORICAL sales data by running SQL queries. The data exists ONLY for dates up to and including the year 2023.
 
-  When you return query results, make sure they are returned in the appropriate format:
+  # 2. WHEN TO USE THIS TOOL
+  # Use this tool ONLY for specific, historical, mathematical queries about what happened in the past.
+  # - GOOD Example: "What were the total sales for Electronics in 2023?"
+  # - GOOD Example: "Show the number of units sold by gender last year."
 
-  Chart Data Requirements for LLM
-  Multi-Line Chart:
-  Column 1: Date/Time (X-axis)
-  Column 2: String/Category (Group/Line)
-  Column 3: Numeric (Y-axis)
-  Scatter Plot:
-  Column 1: Numeric (X-axis)
-  Column 2: Numeric (Y-axis)
-  Optional Column 3: String/Category/Numeric (Group/Color)
-  Simple Line Chart:
-  Column 1: Date/Time (X-axis)
-  Column 2: Numeric (Y-axis)
-  Pie Chart:
-  Column 1: String/Category (Labels - max 10 unique values)
-  Column 2: Numeric (Values)
-  Bar Chart:
-  Column 1: String/Category/Date (X-axis)
-  Column 2: Numeric (Y-axis)
+  # 3. WHEN YOU MUST NOT USE THIS TOOL
+  # For any of the following topics, you MUST use the other available tool (the unstructured document search). DO NOT use this SQL tool.
+  # - Any question about a future year (2024, 2025, etc.).
+  # - Any question containing the words: "trend", "forecast", "prediction", "outlook", "why", "sentiment", "insight", "analyze".
+  # - Any qualitative question that cannot be answered with a number.
+  # - BAD Example: "What are the key trends in apparel for 2025?" (This requires the search tool).
+  # - BAD Example: "Why were sales low in March?" (This requires the search tool).
+
+  ### CHARTING AND OUTPUT FORMAT ###
+  # When you answer a question using this tool, ALWAYS format the SQL output to contain the minimum columns necessary to build one of the following chart types.
+
+  # - Bar Chart: Column 1 String/Category/Date (X-axis), Column 2 Numeric (Y-axis)
+  # - Pie Chart: Column 1 String/Category (Labels), Column 2 Numeric (Values)
+  # - Simple Line Chart: Column 1 Date/Time (X-axis), Column 2 Numeric (Y-axis)
+  # - Scatter Plot: Column 1 Numeric (X-axis), Column 2 Numeric (Y-axis)
+  # - Multi-Line Chart: Column 1 Date/Time (X-axis), Column 2 String/Category (Group/Line), Column 3 Numeric (Y-axis)
