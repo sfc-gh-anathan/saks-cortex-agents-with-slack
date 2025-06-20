@@ -31,7 +31,7 @@ create or replace table parsed_pdfs as (
 -- It will be called by the Cortex Agent via the Cortex Search Service API (routed from the Cortex Agent to the Snowflake Cortex Search Service).
 create or replace CORTEX SEARCH SERVICE SLACK_DEMO.SLACK_SCHEMA.info_search
 ON PAGE_CONTENT
-WAREHOUSE = DASH_S
+WAREHOUSE = SLACK_S
 TARGET_LAG = '1 hour'
 AS (
     SELECT '' AS PAGE_URL, PAGE_CONTENT, TITLE, RELATIVE_PATH
