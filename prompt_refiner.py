@@ -41,7 +41,7 @@ for var in required_env_vars:
         print(f"Error: Required environment variable '{var}' is not set. Please check your .env file.")
         exit(1) # Exit if essential environment variables are missing
 
-DEBUG = True # Set to True for more verbose console output to see debug prints
+DEBUG = False # Set to True for more verbose console output to see debug prints
 
 # --- Initializes Slack App ---
 app = App(token=SLACK_BOT_TOKEN)
@@ -184,7 +184,7 @@ def get_show_sql_query_button_element():
             "text": "Show SQL Query",
             "emoji": True
         },
-        # MODIFIED: Removed style property. Default style is typically white/neutral.
+        # MODIFIED: Removed style property to allow default (white) color
         "action_id": SQL_SHOW_BUTTON_ACTION_ID
     }
 
@@ -221,18 +221,23 @@ def get_download_data_button_element():
     }
 
 # NEW: Combined actions block for all four buttons
-def get_action_buttons_block():
+def get_action_buttons_block(include_show_sql=True): # MODIFIED: Added include_show_sql parameter
     """
-    Returns a Slack Block Kit 'actions' block containing all buttons on the same row.
+    Returns a Slack Block Kit 'actions' block containing desired buttons on the same row.
     """
+    elements = []
+    if include_show_sql: # Only add if requested
+        elements.append(get_show_sql_query_button_element())
+    
+    elements.extend([
+        get_refine_query_button_element(),
+        get_render_chart_button_element(), 
+        get_download_data_button_element() 
+    ])
+    
     return {
         "type": "actions",
-        "elements": [
-            get_show_sql_query_button_element(), # MODIFIED: SQL button first
-            get_refine_query_button_element(),
-            get_render_chart_button_element(), 
-            get_download_data_button_element() 
-        ]
+        "elements": elements
     }
 
 
@@ -365,8 +370,8 @@ def display_agent_response(content, say, app_client, original_body):
                 ]
             })
         
-        # Add the combined action buttons block - this ensures it's always there.
-        final_blocks.append(get_action_buttons_block())
+        # Add the combined action buttons block, including Show SQL Query initially.
+        final_blocks.append(get_action_buttons_block(include_show_sql=True)) # Pass True to include Show SQL
 
         # Send the initial message and capture its timestamp (ts)
         try:
@@ -417,8 +422,8 @@ def display_agent_response(content, say, app_client, original_body):
                     }
                 ]
             },
-            # Add the combined action buttons block to text responses - ensures it's always there.
-            get_action_buttons_block() 
+            # Add the combined action buttons block to text responses, including Show SQL Query initially.
+            get_action_buttons_block(include_show_sql=True) # Pass True to include Show SQL
         ]
         
         say(
@@ -439,18 +444,18 @@ def handle_show_sql_query(ack, body, client):
 
     current_blocks = body['message']['blocks']
     
-    # Filter out the existing action buttons block and any previously added SQL block
     blocks_to_rebuild = []
     sql_already_displayed = False
 
     for block in current_blocks:
+        # Filter out the existing action buttons block
         if block.get("type") == "actions" and any(e.get('action_id') in [REFINE_QUERY_BUTTON_ACTION_ID, SQL_SHOW_BUTTON_ACTION_ID, RENDER_CHART_BUTTON_ACTION_ID, DOWNLOAD_DATA_BUTTON_ACTION_ID] for e in block['elements']):
-            # This is our action buttons block, we will re-add it at the end
+            # This is our action buttons block, we will re-add a modified version later
             continue
         # Check if the SQL is already in the message (e.g., if button was clicked twice)
         if block.get("type") == "rich_text" and any(el.get("text") == "SQL Query:" for el in block.get("elements", []) if el.get("type") == "rich_text_section"):
             sql_already_displayed = True
-            continue # Don't keep the old SQL block if it's there
+            # We don't continue here directly because we might want to keep other blocks before and after SQL
         blocks_to_rebuild.append(block)
 
     updated_blocks = blocks_to_rebuild[:] 
@@ -459,17 +464,17 @@ def handle_show_sql_query(ack, body, client):
         # Insert the full SQL query blocks
         updated_blocks.append(get_sql_code_block(sql_query))
     elif sql_already_displayed:
-        # If SQL was already there, but the user clicked again, provide ephemeral feedback
+        # If SQL was already there, provide ephemeral feedback and don't update the message
         client.chat_postMessage(
             channel=channel_id,
             text="The SQL query is already displayed in the message above.",
             thread_ts=message_ts,
-            ephemeral=True # Make this message visible only to the user who clicked
+            ephemeral=True 
         )
-        return # Do not update the message if SQL is already shown
+        return 
 
-    # Re-add the action buttons at the very end
-    updated_blocks.append(get_action_buttons_block())
+    # Re-add the action buttons, but this time, EXCLUDE the "Show SQL Query" button
+    updated_blocks.append(get_action_buttons_block(include_show_sql=False)) # Pass False to exclude Show SQL
 
     try:
         client.chat_update(
@@ -768,7 +773,7 @@ def handle_download_data_button_click(ack, body, client):
                             "elements": [
                                 {
                                     "type": "text",
-                                    "text": "📥 ", # MODIFIED: Unicode emoji
+                                    "text": "📥 ", # Unicode emoji
                                 },
                                 {
                                     "type": "text",
