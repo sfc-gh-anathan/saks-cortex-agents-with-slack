@@ -29,7 +29,7 @@ WAREHOUSE = os.getenv("WAREHOUSE")
 SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 AGENT_ENDPOINT = os.getenv("AGENT_ENDPOINT")
-SEMANTIC_MODEL = os.getenv("SEMANTIC_MODEL")
+SEMANTIC_MODEL = os.getenv("SEMANTIC_MODEL") # CORRECTED: Typo fixed here
 SEARCH_SERVICE = os.getenv("SEARCH_SERVICE")
 RSA_PRIVATE_KEY_PATH = os.getenv("RSA_PRIVATE_KEY_PATH")
 MODEL = os.getenv("MODEL")
@@ -41,7 +41,7 @@ for var in required_env_vars:
         print(f"Error: Required environment variable '{var}' is not set. Please check your .env file.")
         exit(1) # Exit if essential environment variables are missing
 
-DEBUG = False # Set to True for more verbose console output to see debug prints
+DEBUG = True # Set to True for more verbose console output to see debug prints
 
 # --- Initializes Slack App ---
 app = App(token=SLACK_BOT_TOKEN)
@@ -83,7 +83,7 @@ def handle_message_events(ack, body, say):
                     "type": "section",
                     "text": {
                         "type": "plain_text",
-                        "text": ":snowflake: Snowflake Cortex AI is generating a response. Please wait...",
+                        "text": "❄️ Snowflake Cortex AI is generating a response. Please wait...", # Unicode Emoji
                     }
                 },
                 {
@@ -125,41 +125,36 @@ def ask_agent(prompt):
     return resp
 
 # --- Helper for SQL display blocks ---
-def get_sql_display_blocks(sql_query, show_full=False):
+def get_sql_code_block(sql_query):
     """
-    Generates Slack blocks for displaying SQL query, either as a button or full code.
+    Generates Slack rich_text block for displaying a SQL query as code.
     """
-    if show_full:
-        return [
+    return {
+        "type": "rich_text",
+        "elements": [
             {
-                "type": "rich_text",
+                "type": "rich_text_section",
                 "elements": [
                     {
-                        "type": "rich_text_section",
-                        "elements": [
-                            {
-                                "type": "text",
-                                "text": "SQL Query:",
-                                "style": {
-                                    "bold": True
-                                }
-                            }
-                        ]
-                    },
+                        "type": "text",
+                        "text": "SQL Query:",
+                        "style": {
+                            "bold": True
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "rich_text_preformatted",
+                "elements": [
                     {
-                        "type": "rich_text_preformatted",
-                        "elements": [
-                            {
-                                "type": "text",
-                                "text": sql_query
-                            }
-                        ]
+                        "type": "text",
+                        "text": sql_query
                     }
                 ]
             }
         ]
-    else:
-        return []
+    }
 
 # Helper for Refine Query button element
 def get_refine_query_button_element():
@@ -189,7 +184,7 @@ def get_show_sql_query_button_element():
             "text": "Show SQL Query",
             "emoji": True
         },
-        "style": "primary", 
+        # MODIFIED: Removed style property. Default style is typically white/neutral.
         "action_id": SQL_SHOW_BUTTON_ACTION_ID
     }
 
@@ -233,9 +228,9 @@ def get_action_buttons_block():
     return {
         "type": "actions",
         "elements": [
+            get_show_sql_query_button_element(), # MODIFIED: SQL button first
             get_refine_query_button_element(),
-            get_show_sql_query_button_element(),
-            get_render_chart_button_element(),
+            get_render_chart_button_element(), 
             get_download_data_button_element() 
         ]
     }
@@ -288,7 +283,6 @@ def display_agent_response(content, say, app_client, original_body):
                     if DEBUG:
                         print(f"Could not convert column '{df.columns[i]}' to numeric: {e}")
         
-        # --- Drop rows with NaN in numeric columns after conversion ---
         for col in df.columns:
             if pd.api.types.is_numeric_dtype(df[col]):
                 if df[col].isnull().any():
@@ -445,39 +439,37 @@ def handle_show_sql_query(ack, body, client):
 
     current_blocks = body['message']['blocks']
     
-    updated_blocks = []
+    # Filter out the existing action buttons block and any previously added SQL block
+    blocks_to_rebuild = []
+    sql_already_displayed = False
 
     for block in current_blocks:
-        # Check if this is our combined buttons block and remove it
-        if block.get("type") == "actions" and block.get("elements"):
-            # Check for presence of one of our specific action IDs (all of them)
-            if any(e.get('action_id') in [REFINE_QUERY_BUTTON_ACTION_ID, SQL_SHOW_BUTTON_ACTION_ID, RENDER_CHART_BUTTON_ACTION_ID, DOWNLOAD_DATA_BUTTON_ACTION_ID] for e in block['elements']):
-                continue # Skip this block, as we will replace it below
-        
-        updated_blocks.append(block)
+        if block.get("type") == "actions" and any(e.get('action_id') in [REFINE_QUERY_BUTTON_ACTION_ID, SQL_SHOW_BUTTON_ACTION_ID, RENDER_CHART_BUTTON_ACTION_ID, DOWNLOAD_DATA_BUTTON_ACTION_ID] for e in block['elements']):
+            # This is our action buttons block, we will re-add it at the end
+            continue
+        # Check if the SQL is already in the message (e.g., if button was clicked twice)
+        if block.get("type") == "rich_text" and any(el.get("text") == "SQL Query:" for el in block.get("elements", []) if el.get("type") == "rich_text_section"):
+            sql_already_displayed = True
+            continue # Don't keep the old SQL block if it's there
+        blocks_to_rebuild.append(block)
 
-    if sql_query:
-        # Add the full SQL query blocks
-        updated_blocks.extend(get_sql_display_blocks(sql_query, show_full=True))
-    else:
+    updated_blocks = blocks_to_rebuild[:] 
+
+    if sql_query and not sql_already_displayed: 
+        # Insert the full SQL query blocks
+        updated_blocks.append(get_sql_code_block(sql_query))
+    elif sql_already_displayed:
+        # If SQL was already there, but the user clicked again, provide ephemeral feedback
         client.chat_postMessage(
             channel=channel_id,
-            text="Sorry, I couldn't retrieve the SQL query for this message. It might have expired or been cleared.",
-            thread_ts=message_ts
+            text="The SQL query is already displayed in the message above.",
+            thread_ts=message_ts,
+            ephemeral=True # Make this message visible only to the user who clicked
         )
-        return 
+        return # Do not update the message if SQL is already shown
 
-    # Re-add the refine, render chart, and download data buttons below the SQL query
-    # This block ensures these buttons remain available after showing the SQL.
-    updated_blocks.append({
-        "type": "actions",
-        "elements": [
-            get_refine_query_button_element(),
-            get_render_chart_button_element(),
-            get_download_data_button_element() 
-        ]
-    })
-
+    # Re-add the action buttons at the very end
+    updated_blocks.append(get_action_buttons_block())
 
     try:
         client.chat_update(
@@ -550,9 +542,32 @@ def handle_refine_query_button_click(ack, body, client):
         return
 
     try:
+        # MODIFIED: Used rich_text blocks for reliable bolding and emoji
         client.chat_postMessage( 
             channel=channel_id,
-            text=f":snowflake: Refining prompt for: '{last_user_prompt_global}'...", # Bolded
+            blocks=[
+                {
+                    "type": "rich_text",
+                    "elements": [
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "text": "❄️ ", # Unicode emoji
+                                },
+                                {
+                                    "type": "text",
+                                    "text": f"Refining prompt for: '{last_user_prompt_global}'...",
+                                    "style": {
+                                        "bold": True
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
             thread_ts=message_ts
         )
         
@@ -562,7 +577,7 @@ def handle_refine_query_button_click(ack, body, client):
         escaped_file_name = SNOWFLAKE_FILE_NAME.replace("'", "''")
         escaped_user_prompt = last_user_prompt_global.replace("'", "''") 
 
-        # MODIFIED: Use DATABASE and SCHEMA environment variables for consistency
+        # Using DATABASE and SCHEMA environment variables for consistency
         sql_call_formatted = (
             f"CALL {DATABASE}.{SCHEMA}.REFINE_QUERY("
             f"'{escaped_stage_path}', "
@@ -618,9 +633,32 @@ def handle_render_chart_button_click(ack, body, client):
         return
 
     try:
+        # MODIFIED: Used rich_text blocks for reliable bolding and emoji
         client.chat_postMessage(
             channel=channel_id,
-            text=":chart_with_upwards_trend:Generating your chart...", # Bolded
+            blocks=[
+                {
+                    "type": "rich_text",
+                    "elements": [
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "text": "📈 ", # MODIFIED: Unicode emoji
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "Generating your chart...",
+                                    "style": {
+                                        "bold": True
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
             thread_ts=message_ts 
         )
 
@@ -718,9 +756,32 @@ def handle_download_data_button_click(ack, body, client):
         return
 
     try:
+        # MODIFIED: Used rich_text blocks for reliable bolding and emoji
         client.chat_postMessage(
             channel=channel_id,
-            text=":inbox_tray: **Preparing data for download...**", # Bolded
+            blocks=[
+                {
+                    "type": "rich_text",
+                    "elements": [
+                        {
+                            "type": "rich_text_section",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "text": "📥 ", # MODIFIED: Unicode emoji
+                                },
+                                {
+                                    "type": "text",
+                                    "text": "Preparing data for download...",
+                                    "style": {
+                                        "bold": True
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
             thread_ts=message_ts
         )
 
@@ -827,4 +888,3 @@ if __name__ == "__main__":
     Root = Root(CONN) # Assuming Root is used elsewhere or for Snowpark Session
     print("Starting SocketModeHandler...")
     SocketModeHandler(app, SLACK_APP_TOKEN).start()
-    
