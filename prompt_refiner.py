@@ -8,12 +8,12 @@ from snowflake.core import Root
 from dotenv import load_dotenv
 import cortex_chat
 import time
-import requests 
-import tempfile 
-import io 
+import requests
+import tempfile
+import io
 
 # Import charting functions from the new file
-from chart_utils import select_and_plot_chart, upload_chart_to_slack 
+from chart_utils import select_and_plot_chart, upload_chart_to_slack
 
 
 load_dotenv()
@@ -52,9 +52,9 @@ app = App(token=SLACK_BOT_TOKEN)
 # to handle multiple concurrent users and bot restarts.
 global_sql_cache = {}
 SQL_SHOW_BUTTON_ACTION_ID = "show_full_sql_query_button"
-REFINE_QUERY_BUTTON_ACTION_ID = "refine_query_button" 
-RENDER_CHART_BUTTON_ACTION_ID = "render_chart_button" 
-DOWNLOAD_DATA_BUTTON_ACTION_ID = "download_data_button" 
+REFINE_QUERY_BUTTON_ACTION_ID = "refine_query_button"
+RENDER_CHART_BUTTON_ACTION_ID = "render_chart_button"
+DOWNLOAD_DATA_BUTTON_ACTION_ID = "download_data_button"
 
 # Global variable to store the last user prompt
 last_user_prompt_global = ""
@@ -68,11 +68,11 @@ SNOWFLAKE_FILE_NAME = 'retail_sales_data.yaml'
 
 @app.event("message")
 def handle_message_events(ack, body, say):
-    global last_user_prompt_global 
+    global last_user_prompt_global
     try:
         ack()
         prompt = body['event']['text']
-        last_user_prompt_global = prompt 
+        last_user_prompt_global = prompt
         say(
             text = "Snowflake Cortex AI is generating a response",
             blocks=[
@@ -92,10 +92,10 @@ def handle_message_events(ack, body, say):
             ]
         )
         response = ask_agent(prompt)
-        display_agent_response(response, say, app.client, body) 
+        display_agent_response(response, say, app.client, body)
     except Exception as e:
         error_info = f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}"
-        print(f"ERROR: {error_info}") 
+        print(f"ERROR: {error_info}")
         say(
             text = "Request failed...",
             blocks=[
@@ -168,8 +168,8 @@ def get_refine_query_button_element():
             "text": "Refine Prompt",
             "emoji": True
         },
-        "style": "primary", 
-        "action_id": REFINE_QUERY_BUTTON_ACTION_ID 
+        "style": "primary",
+        "action_id": REFINE_QUERY_BUTTON_ACTION_ID
     }
 
 # Helper for Show SQL Query button element
@@ -200,7 +200,7 @@ def get_render_chart_button_element():
             "text": "Render Chart",
             "emoji": True
         },
-        "style": "primary", 
+        "style": "primary",
         "action_id": RENDER_CHART_BUTTON_ACTION_ID
     }
 
@@ -216,8 +216,8 @@ def get_download_data_button_element():
             "text": "Download Data",
             "emoji": True
         },
-        "style": "primary", 
-        "action_id": DOWNLOAD_DATA_BUTTON_ACTION_ID 
+        "style": "primary",
+        "action_id": DOWNLOAD_DATA_BUTTON_ACTION_ID
     }
 
 # NEW: Combined actions block for all four buttons
@@ -228,13 +228,13 @@ def get_action_buttons_block(include_show_sql=True): # MODIFIED: Added include_s
     elements = []
     if include_show_sql: # Only add if requested
         elements.append(get_show_sql_query_button_element())
-    
+
     elements.extend([
         get_refine_query_button_element(),
-        get_render_chart_button_element(), 
-        get_download_data_button_element() 
+        get_render_chart_button_element(),
+        get_download_data_button_element()
     ])
-    
+
     return {
         "type": "actions",
         "elements": elements
@@ -243,14 +243,14 @@ def get_action_buttons_block(include_show_sql=True): # MODIFIED: Added include_s
 
 # --- Response Display and Charting Logic ---
 
-def display_agent_response(content, say, app_client, original_body): 
+def display_agent_response(content, say, app_client, original_body):
     """
     Displays the agent's response, handling both SQL results (with charts)
     and unstructured text responses.
     """
-    channel_id = original_body['event']['channel'] 
+    channel_id = original_body['event']['channel']
 
-    final_blocks = [] 
+    final_blocks = []
 
     if content['sql']:
         sql = content['sql']
@@ -259,21 +259,21 @@ def display_agent_response(content, say, app_client, original_body):
 
         if DEBUG:
             print("Original DataFrame info:")
-            df.info() 
+            df.info()
 
         # --- Robust Type Conversion for Plotting ---
         if len(df.columns) >= 2:
             try:
                 if pd.api.types.is_object_dtype(df.iloc[:, 0]) or pd.api.types.is_string_dtype(df.iloc[:, 0]):
                     temp_col = pd.to_datetime(df.iloc[:, 0], errors='coerce')
-                    if not temp_col.isna().all(): 
+                    if not temp_col.isna().all():
                         df[df.columns[0]] = temp_col
                         if DEBUG:
                             print(f"Converted column '{df.columns[0]}' to datetime where possible.")
             except Exception as e:
                 if DEBUG:
                     print(f"Could not convert column '{df.columns[0]}' to datetime: {e}")
-            
+
             for i in range(len(df.columns)):
                 try:
                     if pd.api.types.is_object_dtype(df.iloc[:, i]) or pd.api.types.is_string_dtype(df.iloc[:, i]):
@@ -287,7 +287,7 @@ def display_agent_response(content, say, app_client, original_body):
                 except Exception as e:
                     if DEBUG:
                         print(f"Could not convert column '{df.columns[i]}' to numeric: {e}")
-        
+
         for col in df.columns:
             if pd.api.types.is_numeric_dtype(df[col]):
                 if df[col].isnull().any():
@@ -297,17 +297,17 @@ def display_agent_response(content, say, app_client, original_body):
 
         if DEBUG:
             print("\nDataFrame after type conversion info:")
-            df.info() 
+            df.info()
 
             print("\nDataFrame head after conversion:")
-            print(df.head()) 
+            print(df.head())
 
         # Handle Single-Row Answers Specifically
         if len(df) == 1:
             formatted_answer = ""
             for col in df.columns:
                 formatted_answer += f"*{col.replace('_', ' ').title()}*: {df[col].iloc[0]}\n"
-            
+
             final_blocks.append({
                 "type": "rich_text",
                 "elements": [
@@ -337,7 +337,7 @@ def display_agent_response(content, say, app_client, original_body):
         else:
             # Limit displayed rows and indicate truncation
             original_rows = len(df)
-            display_df = df.head(10) 
+            display_df = df.head(10)
             truncated_message = ""
             if original_rows > 10:
                 truncated_message = "\n\n(Results truncated to 10 lines.)"
@@ -369,7 +369,7 @@ def display_agent_response(content, say, app_client, original_body):
                     }
                 ]
             })
-        
+
         # Add the combined action buttons block, including Show SQL Query initially.
         final_blocks.append(get_action_buttons_block(include_show_sql=True)) # Pass True to include Show SQL
 
@@ -377,11 +377,11 @@ def display_agent_response(content, say, app_client, original_body):
         try:
             post_response = app_client.chat_postMessage(
                 channel=channel_id,
-                blocks=final_blocks, 
-                text="Your query results are ready." 
+                blocks=final_blocks,
+                text="Your query results are ready."
             )
             message_ts = post_response['ts']
-            
+
             # Store the full SQL query in the global cache, keyed by message_ts
             global_sql_cache[message_ts] = sql
 
@@ -422,28 +422,27 @@ def display_agent_response(content, say, app_client, original_body):
                     }
                 ]
             },
-            # Add the combined action buttons block to text responses, including Show SQL Query initially.
-            get_action_buttons_block(include_show_sql=True) # Pass True to include Show SQL
+            # No buttons are added here as the response is unstructured
         ]
-        
+
         say(
-            text="Answer:", 
+            text="Answer:",
             blocks=text_response_blocks
         )
 
 # --- Action handler for "Show SQL Query" button ---
 @app.action(SQL_SHOW_BUTTON_ACTION_ID)
 def handle_show_sql_query(ack, body, client):
-    ack() 
+    ack()
 
     message_ts = body['message']['ts']
     channel_id = body['channel']['id']
-    
+
     # Retrieve the SQL query from the cache using the message's timestamp
-    sql_query = global_sql_cache.get(message_ts) 
+    sql_query = global_sql_cache.get(message_ts)
 
     current_blocks = body['message']['blocks']
-    
+
     blocks_to_rebuild = []
     sql_already_displayed = False
 
@@ -458,9 +457,9 @@ def handle_show_sql_query(ack, body, client):
             # We don't continue here directly because we might want to keep other blocks before and after SQL
         blocks_to_rebuild.append(block)
 
-    updated_blocks = blocks_to_rebuild[:] 
+    updated_blocks = blocks_to_rebuild[:]
 
-    if sql_query and not sql_already_displayed: 
+    if sql_query and not sql_already_displayed:
         # Insert the full SQL query blocks
         updated_blocks.append(get_sql_code_block(sql_query))
     elif sql_already_displayed:
@@ -469,9 +468,9 @@ def handle_show_sql_query(ack, body, client):
             channel=channel_id,
             text="The SQL query is already displayed in the message above.",
             thread_ts=message_ts,
-            ephemeral=True 
+            ephemeral=True
         )
-        return 
+        return
 
     # Re-add the action buttons, but this time, EXCLUDE the "Show SQL Query" button
     updated_blocks.append(get_action_buttons_block(include_show_sql=False)) # Pass False to exclude Show SQL
@@ -481,7 +480,7 @@ def handle_show_sql_query(ack, body, client):
             channel=channel_id,
             ts=message_ts,
             blocks=updated_blocks,
-            text="Your query results and SQL." 
+            text="Your query results and SQL."
         )
     except Exception as e:
         print(f"Error updating message with SQL: {e}")
@@ -492,7 +491,7 @@ def handle_show_sql_query(ack, body, client):
         )
 
     # Do NOT delete from global_sql_cache here, as Render Chart and Download Data needs it.
-    # global_sql_cache.pop(message_ts, None) 
+    # global_sql_cache.pop(message_ts, None)
 
 
 # --- Hello World Button Definitions (from previous request) ---
@@ -513,7 +512,7 @@ def handle_show_sql_query(ack, body, client):
 #                     "emoji": True
 #                 },
 #                 "style": "primary",
-#                 "action_id": "hello_world_button" 
+#                 "action_id": "hello_world_button"
 #             }
 #         ]
 #     }
@@ -523,32 +522,32 @@ def handle_hello_world_button_click(ack, say):
     """
     Handles the click event for the "Hello World" button.
     """
-    ack() 
+    ack()
     say("Hi!")
 
 # Action handler for "Refine Query" button
 @app.action(REFINE_QUERY_BUTTON_ACTION_ID)
-def handle_refine_query_button_click(ack, body, client): 
+def handle_refine_query_button_click(ack, body, client):
     """
     Handles the click event for the "Refine Prompt" button.
     Calls the Snowflake stored procedure REFINE_QUERY with the last user prompt.
     """
-    ack() 
-    
-    message_ts = body['message']['ts'] 
-    channel_id = body['channel']['id'] 
+    ack()
+
+    message_ts = body['message']['ts']
+    channel_id = body['channel']['id']
 
     if not last_user_prompt_global:
         client.chat_postMessage(
             channel=channel_id,
             text="Sorry, I couldn't retrieve the last prompt to refine. Please try inputing another prompt.",
-            thread_ts=message_ts 
+            thread_ts=message_ts
         )
         return
 
     try:
         # MODIFIED: Used rich_text blocks for reliable bolding and emoji
-        client.chat_postMessage( 
+        client.chat_postMessage(
             channel=channel_id,
             blocks=[
                 {
@@ -575,12 +574,12 @@ def handle_refine_query_button_click(ack, body, client):
             ],
             thread_ts=message_ts
         )
-        
+
         cur = CONN.cursor()
-        
+
         escaped_stage_path = SNOWFLAKE_STAGE_PATH.replace("'", "''")
         escaped_file_name = SNOWFLAKE_FILE_NAME.replace("'", "''")
-        escaped_user_prompt = last_user_prompt_global.replace("'", "''") 
+        escaped_user_prompt = last_user_prompt_global.replace("'", "''")
 
         # Using DATABASE and SCHEMA environment variables for consistency
         sql_call_formatted = (
@@ -589,29 +588,29 @@ def handle_refine_query_button_click(ack, body, client):
             f"'{escaped_file_name}', "
             f"'{escaped_user_prompt}')"
         )
-        
+
         if DEBUG:
             print(f"DEBUG: Attempting to call with formatted SQL: {sql_call_formatted}")
-            
+
         cur.execute(sql_call_formatted)
-        
+
         result = cur.fetchone()
-        
+
         if result:
-            refinement_message = result[0] 
+            refinement_message = result[0]
         else:
             refinement_message = "No refinement suggestions received from Cortex."
-            
-        client.chat_postMessage( 
+
+        client.chat_postMessage(
             channel=channel_id,
-            text=f"Prompt Refinement: {refinement_message}", 
+            text=f"Prompt Refinement: {refinement_message}",
             thread_ts=message_ts
         )
-        
+
     except Exception as e:
         error_info = f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}"
         print(f"ERROR calling Snowflake REFINE_QUERY: {error_info}")
-        client.chat_postMessage( 
+        client.chat_postMessage(
             channel=channel_id,
             text=f"An error occurred while trying to refine the prompt: {e}",
             thread_ts=message_ts
@@ -664,7 +663,7 @@ def handle_render_chart_button_click(ack, body, client):
                     ]
                 }
             ],
-            thread_ts=message_ts 
+            thread_ts=message_ts
         )
 
         # Re-execute the SQL query to get the data for charting
@@ -674,20 +673,20 @@ def handle_render_chart_button_click(ack, body, client):
             print("DataFrame for charting info:")
             df.info()
             print(df.head())
-        
+
         # --- Robust Type Conversion for Plotting (similar to display_agent_response) ---
         if len(df.columns) >= 2:
             try:
                 if pd.api.types.is_object_dtype(df.iloc[:, 0]) or pd.api.types.is_string_dtype(df.iloc[:, 0]):
                     temp_col = pd.to_datetime(df.iloc[:, 0], errors='coerce')
-                    if not temp_col.isna().all(): 
+                    if not temp_col.isna().all():
                         df[df.columns[0]] = temp_col
                         if DEBUG:
                             print(f"Chart: Converted column '{df.columns[0]}' to datetime.")
             except Exception as e:
                 if DEBUG:
                     print(f"Chart: Could not convert column '{df.columns[0]}' to datetime: {e}")
-            
+
             for i in range(len(df.columns)):
                 try:
                     if pd.api.types.is_object_dtype(df.iloc[:, i]) or pd.api.types.is_string_dtype(df.iloc[:, i]):
@@ -701,7 +700,7 @@ def handle_render_chart_button_click(ack, body, client):
                 except Exception as e:
                     if DEBUG:
                         print(f"Chart: Could not convert column '{df.columns[i]}' to numeric: {e}")
-        
+
         for col in df.columns:
             if pd.api.types.is_numeric_dtype(df[col]):
                 if df[col].isnull().any():
@@ -710,7 +709,7 @@ def handle_render_chart_button_click(ack, body, client):
                         print(f"Chart: Dropped rows with NaN in numeric column '{col}'.")
 
 
-        chart_img_url = select_and_plot_chart(df, client) 
+        chart_img_url = select_and_plot_chart(df, client)
         if chart_img_url:
             client.chat_postMessage(
                 channel=channel_id,
@@ -721,11 +720,11 @@ def handle_render_chart_button_click(ack, body, client):
                             "type": "plain_text",
                             "text": "Generated Chart"
                         },
-                        "image_url": chart_img_url, 
+                        "image_url": chart_img_url,
                         "alt_text": "Generated Chart"
                     }
                 ],
-                thread_ts=message_ts 
+                thread_ts=message_ts
             )
         else:
             client.chat_postMessage(
@@ -744,7 +743,7 @@ def handle_render_chart_button_click(ack, body, client):
         )
 
 # Action handler for "Download Data" button
-@app.action(DOWNLOAD_DATA_BUTTON_ACTION_ID) 
+@app.action(DOWNLOAD_DATA_BUTTON_ACTION_ID)
 def handle_download_data_button_click(ack, body, client):
     ack()
     message_ts = body['message']['ts']
@@ -811,15 +810,15 @@ def handle_download_data_button_click(ack, body, client):
         # Use BytesIO to create an in-memory file for CSV
         csv_buffer = io.StringIO()
         df.to_csv(csv_buffer, index=False)
-        csv_buffer.seek(0) 
+        csv_buffer.seek(0)
 
         file_name = f"query_results_{int(time.time())}.csv"
-        
+
         if DEBUG:
             print(f"DEBUG: Attempting to upload file '{file_name}' to channel '{channel_id}' with thread_ts '{message_ts}'")
-            
+
         # Capture the response from Slack API for more detailed debugging
-        upload_response = client.files_upload_v2( 
+        upload_response = client.files_upload_v2(
             channel=channel_id,
             file=csv_buffer.getvalue().encode('utf-8'), # Encode to bytes for upload
             filename=file_name,
@@ -833,7 +832,7 @@ def handle_download_data_button_click(ack, body, client):
                 print(f"DEBUG: File uploaded successfully: {upload_response.get('file', {}).get('permalink')}")
             else:
                 print(f"DEBUG: File upload failed: {upload_response.get('error')}")
-            
+
 
     except Exception as e:
         error_info = f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}"
