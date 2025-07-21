@@ -497,26 +497,26 @@ def handle_show_sql_query(ack, body, client):
 
 # --- Hello World Button Definitions (from previous request) ---
 
-def get_hello_world_button_block():
-    """
-    Returns the Slack Block Kit structure for the "Hello World" button.
-    This makes the button definition reusable and isolated.
-    """
-    return {
-        "type": "actions",
-        "elements": [
-            {
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Hello World",
-                    "emoji": True
-                },
-                "style": "primary",
-                "action_id": "hello_world_button" 
-            }
-        ]
-    }
+# def get_hello_world_button_block():
+#     """
+#     Returns the Slack Block Kit structure for the "Hello World" button.
+#     This makes the button definition reusable and isolated.
+#     """
+#     return {
+#         "type": "actions",
+#         "elements": [
+#             {
+#                 "type": "button",
+#                 "text": {
+#                     "type": "plain_text",
+#                     "text": "Hello World",
+#                     "emoji": True
+#                 },
+#                 "style": "primary",
+#                 "action_id": "hello_world_button" 
+#             }
+#         ]
+#     }
 
 @app.action("hello_world_button")
 def handle_hello_world_button_click(ack, say):
