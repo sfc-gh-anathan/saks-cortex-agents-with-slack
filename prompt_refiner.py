@@ -240,7 +240,6 @@ def get_action_buttons_block(include_show_sql=True): # MODIFIED: Added include_s
         "elements": elements
     }
 
-
 # --- Response Display and Charting Logic ---
 
 def display_agent_response(content, say, app_client, original_body):
@@ -489,41 +488,6 @@ def handle_show_sql_query(ack, body, client):
             text=f"An error occurred while displaying the query: {e}",
             thread_ts=message_ts
         )
-
-    # Do NOT delete from global_sql_cache here, as Render Chart and Download Data needs it.
-    # global_sql_cache.pop(message_ts, None)
-
-
-# --- Hello World Button Definitions (from previous request) ---
-
-# def get_hello_world_button_block():
-#     """
-#     Returns the Slack Block Kit structure for the "Hello World" button.
-#     This makes the button definition reusable and isolated.
-#     """
-#     return {
-#         "type": "actions",
-#         "elements": [
-#             {
-#                 "type": "button",
-#                 "text": {
-#                     "type": "plain_text",
-#                     "text": "Hello World",
-#                     "emoji": True
-#                 },
-#                 "style": "primary",
-#                 "action_id": "hello_world_button"
-#             }
-#         ]
-#     }
-
-@app.action("hello_world_button")
-def handle_hello_world_button_click(ack, say):
-    """
-    Handles the click event for the "Hello World" button.
-    """
-    ack()
-    say("Hi!")
 
 # Action handler for "Refine Query" button
 @app.action(REFINE_QUERY_BUTTON_ACTION_ID)
