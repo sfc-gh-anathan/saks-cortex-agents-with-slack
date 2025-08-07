@@ -40,10 +40,7 @@ AS (
 
 drop warehouse TEMP_MEDIUM;
 
--- Create the REFINE_QUERY stored procedure
--- This procedure is called by the Slack bot to refine user prompts using Snowflake Cortex
--- It reads the semantic model from the stage and uses Cortex to provide intelligent suggestions
-CREATE OR REPLACE PROCEDURE REFINE_QUERY("STAGE_PATH" VARCHAR, "FILE_NAME" VARCHAR, "USER_PROMPT" VARCHAR)
+CREATE OR REPLACE PROCEDURE SLACK_DEMO.SLACK_SCHEMA.REFINE_QUERY("STAGE_PATH" VARCHAR, "FILE_NAME" VARCHAR, "USER_PROMPT" VARCHAR)
 RETURNS VARCHAR
 LANGUAGE PYTHON
 RUNTIME_VERSION = '3.9'
@@ -54,13 +51,16 @@ AS '
 def refine_query(session, stage_path, file_name, user_prompt):
     try:
         # Construct the full file path
-        if not stage_path.endswith("/"):
-            full_path = stage_path + "/" + file_name
+        if not stage_path.endswith(''/''):
+            full_path = stage_path + ''/'' + file_name
         else:
             full_path = stage_path + file_name
         
         # Use the Snowpark DataFrame API to read the file
-        df = session.read.option("FIELD_DELIMITER", "NONE").option("RECORD_DELIMITER", "NONE").option("SKIP_HEADER", 0).csv(full_path)
+        df = session.read.option("FIELD_DELIMITER", "NONE") \\
+                        .option("RECORD_DELIMITER", "NONE") \\
+                        .option("SKIP_HEADER", 0) \\
+                        .csv(full_path)
         
         # Collect all rows and concatenate them
         rows = df.collect()
@@ -70,7 +70,7 @@ def refine_query(session, stage_path, file_name, user_prompt):
             if row[0] is not None:
                 file_content += str(row[0])
         
-        # Create the prompt for Cortex to analyze the users query against the semantic model
+        # Create the prompt for Cortex to analyze the user''s query against the semantic model
         cortex_prompt = f"""
 User Query: "{user_prompt}"
 
@@ -90,7 +90,7 @@ Be direct and concise.
         
         # Call Cortex with the analysis prompt
         cortex_query = """
-        SELECT SNOWFLAKE.CORTEX.COMPLETE(''claude-3-5-sonnet'', ?) as result
+        SELECT SNOWFLAKE.CORTEX.COMPLETE(''claude-4-sonnet'', ?) as result
         """
         
         cortex_result = session.sql(cortex_query, [cortex_prompt]).collect()
@@ -103,6 +103,3 @@ Be direct and concise.
     except Exception as e:
         return f"Error in refine_query: {str(e)}"
 ';
-
--- Grant necessary permissions (adjust roles as needed)
-GRANT USAGE ON PROCEDURE REFINE_QUERY(VARCHAR, VARCHAR, VARCHAR) TO ROLE ACCOUNTADMIN;
