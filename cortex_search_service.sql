@@ -103,3 +103,7 @@ Be direct and concise.
     except Exception as e:
         return f"Error in refine_query: {str(e)}"
 ';
+
+
+-- Grant necessary permissions (adjust roles as needed)
+GRANT USAGE ON PROCEDURE REFINE_QUERY(VARCHAR, VARCHAR, VARCHAR) TO ROLE ACCOUNTADMIN;
